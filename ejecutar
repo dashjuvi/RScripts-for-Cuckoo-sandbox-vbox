@@ -1,0 +1,79 @@
+#!/bin/bash
+echo ""
+echo "Lanzamos la api de cuckoo con otro shell para que vaya por separado"
+#$(cuckoo api&)
+echo ""
+directory="/home/memelord/Documents/viruses/EXE"
+echo "Comprobando si estamos en directorio correcto..."
+echo "Actualizando directorio..."
+echo cd /home/memelord/Documents/viruses/EXE
+echo ""
+echo "Directorio Actualizado"
+echo $directory
+if [ -d $directory ]; then
+	echo ""
+	echo "Directorio correcto"
+else
+	echo ""
+	echo "Fallo de directorio"
+fi
+echo ""
+echo "-----------------"
+echo "Leyendo numero de archivos en carpeta..."
+echo "------------------------"
+echo ""
+echo "**NOTAS**"
+echo "Recordar que los archivos .exe no pueden empezar por numero"
+echo "Si se da el caso, puede no guardarse correctamente como archivo"
+echo ""
+echo "---------------------------------"
+echo ""
+#echo "Numero de .exe encontrados en "$directory
+#num=$(ls -1 | wc -l)
+#echo "$num"
+echo "Buscando numero de .exe en: "$directory" ..."
+contador=0
+cd $directory
+for i in $( ls ); do
+
+
+#FILE, comando de linux para saber que tipo de extension tiene un archivo, no miente, pilla renombres de .exe a .doc
+#Cambiar esto mañana
+if [ ${i##*.} == 'exe'  ]; then
+	echo ".exe encontrado"
+	echo item: $i
+	((contador++))
+fi
+done
+#if [ -x $file ]
+#then
+#    echo "File '$file' is executable"
+#    echo item: $i
+#   ((contador++))
+#else
+#    echo "File '$file' is not executable or found"
+#fi
+
+echo ""
+echo "Hemos encontrado "$contador" ficheros .exe en el directorio"
+
+echo "----------------------------------------------------------"
+echo ""
+echo "¿Desea procesar estos ficheros en cuckoo?"
+echo "Y(Yes) | N(No)"
+read decision
+newdirectory="/usr/local/lib/python2.7/dist-packages/cuckoo/core"
+#num2=$(find $directory -executable -type f)
+#echo "$num2"
+#echo "---------------"
+#Para el submit poner cuckoo en modo api, y por curl ir pasando ficheros en bash, o script de py.
+echo cd /usr/local/lib/python2.7/dist-packages/cuckoo/core
+if [ ${decision} == 'Y'  ]; then
+	for b in $( ls ); do
+	#$(/usr/local/lib/python2.7/dist-packages/cuckoo/core/submit.py --package exe $directory/b)
+	#$(python submit.py $directory/b --package exe --machine cuckoo1)
+	$(curl -F file=@$directory/$b http://localhost:8090/tasks/create/file)
+	done
+fi
+
+#echo cuckoo submit --package exe 

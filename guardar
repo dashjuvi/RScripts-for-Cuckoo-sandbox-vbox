@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "¿Guardar snapshot?"
+echo "Y(Yes) | N(No)"
+read decision
+if [ ${decision} == 'Y'  ]; then
+	$(VBoxManage snapshot "W7-64" take "Inori" --pause)
+	sleep 2s
+	$(VBoxManage controlvm "W7-64" poweroff)
+	sleep 2s
+	$(VBoxManage snapshot "W7-64" restorecurrent)
+	sleep 2s
+	echo "Aunque haya errores, funciona :D"
+else
+echo "Poh nah, me apago"
+fi
