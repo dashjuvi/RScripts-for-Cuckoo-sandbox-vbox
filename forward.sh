@@ -1,3 +1,4 @@
+#Ejecutar forward b4 doing anything else or itll crash
 #Iniciar previamente la Vbox o no funcionara
 ifconfig vboxnet0 192.168.56.1
 #Para permitir que pase el trafico de w7-64 por nuestro linux
