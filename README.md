@@ -5,7 +5,9 @@ Random scripts for cuckoo automatic analysis
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Scripts
+## Scripts
+
+List of 3 scripts used to set up the system. Tested on Lubuntu 18.07
 
 ### Forward.sh
 
