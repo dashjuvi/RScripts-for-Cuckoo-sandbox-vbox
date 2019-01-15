@@ -1,0 +1,86 @@
+Reference to create our own hardened vbox:
+http://byte-atlas.blogspot.com/2017/02/hardening-vbox-win7x64.html
+
+1) VMCloak by skier_t : https://github.com/hatching/vmcloak
+2) VBoxHardenedLoader by hfiref0x (and kernelmode thread as installation guide): https://github.com/hfiref0x/VBoxHardenedLoader
+3) antivmdetection by nsmfoo (and blog posts 1 2 3 4 5): https://github.com/nsmfoo/antivmdetection
+
+What to do before starting:
+-Download: https://docs.microsoft.com/en-us/sysinternals/downloads/volumeid
+-Download: http://www.nirsoft.net/utils/device_manager_view.html
+3) # apt-get install acpidump (used by Python Script to fetch your system's parameters)
+4) # apt-get install libcdio-utils (contains "cd-drive", used to read these params)
+5) # apt-get install python-dmidecode (the pip-version of dmidecode is incompatible and useless for our purpose, so fetch the right one)
+6) $ git clone https://github.com/nsmfoo/antivmdetection.git
+7) $ cd antivmdetection :)
+8) $ echo "some-username" > user.lst (with your desired in-VM username(s))
+9) $ echo "some-computername" > computer.lst
+
+VM creation--
+ NIC: 1x Host-Only adapter (we don't want Internet connectivity right away or Windows may develop the idea of updating itself)
+
+Important: Before mounting the Windows ISO, now is the time to use antivmdetection.py.
+
+It will create 2 shell scripts:
+1) <DmiSystemProduct>.sh <- Script to be used from outside the VM
+2) <DmiSystemProduct>.ps1 <- Script to be used from inside the VM post installation
+
+Run Antivmdetection (outside VM): For me <DmiSystemProduct> resulted in "AllSeries" because I run an ASUS board.
+Okay, next step: execute <DmiSystemProduct>.sh - For me, this immediately resulted in a VM I could not start. Responsible for this were the 3 entries
+1) DmiBIOSVersion
+2) DmiBoardAssetTag
+3) DmiBoardLocInChass
+Which were set by <DmiSystemProduct>.sh to an integer value and VirtualBox was pretty unhappy with that fact, expecting a string. Changing these to random strings fixed the issue though. So this may be one of the pitfalls you may run into when using the tool. Setting the ACPI CustomTable however worked fine.
+
+Install win with the iso
+
+9000 MINUTES LATER
+
+Windows Configuration: Here are some steps to consider that may depend on personal taste.
+1) Deactivate Windows Defender - Yes. Because. Malware.
+2) Deactivate Windows Updates - We want to keep our system DLL versions fixed to be able to statically infer imported APIs later on.
+3) Deactivate ASLR - We don't want our system DLL import addresses randomized later on. Basically, just create the following registry key (Credit to Ulbright's Blog):
+
+ [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management] - “MoveImages”=dword:00000000
+ 
+ 4)  Deactivate NX - Whatever may help our malware to run... Basically, just run this in Windows command line (again Credit to Ulbright's Blog):
+bcdedit.exe /set {current} nx AlwaysOff
+5) Allow execution of powershell scripts - Enter a powershell and run:
+> Set-ExecutionPolicy Unrestricted
+
+Run Antivmdetection (in VM): Now we are good to execute the second script <DmiSystemProduct>.ps1.
+Some of its benefits:
+* ensure our registry looks clean
+* remove the VirtualBox VGA device
+* modify our ProductKey and VolumeID
+* change the user and computer name
+* create and delete a bunch of random files to make the system appear more "used".
+* associate media files with Windows Media Player
+* clean itself up and reboot.
+
+ependencies: Because malware and packers often require Visual C and NET runtimes, we install them as well. I used:
+* MSVCRT 2005 x86 and x64
+* MSVCRT 2008 x86 and x64
+* MSVCRT 2010 x86 and x64
+* MSVCRT 2012 x86 and x64
+* MSVCRT 2013 x86 and x64
+* MSVCRT 2015 x86 and x64
+* MS.NET 4.5.2
+
+LINK TO FIRST LINE TO REFER TO INSTALLATION, just install to make the malware happy lmao
+
+ Installing MS Office, Adobe Acrobat, Flash, Chrome, Firefox all come to mind.
+ 
+ Paravirtualization settings: VirtualBox allows you to choose a paravirtualization profile. They expose different combinations of hypervisor bit (HVB) and Hypervisor Vendor Leaf Name (HVN):
+
+1) none    (HVB=0, HVN="VBoxVBoxVBox")
+2) default (HVB=1 HVN="VBoxVBoxVBox" but can be modified by patching /usr/lib/virtualbox/VBoxVMM.so as shown above, where we have "vbvbvbvbvbvb" instead)
+3) legacy  (HVB=0, HVN="VBoxVBoxVBox")
+4) minimal (HVB=1, HVN="VBoxVBoxVBox")
+5) Hyper-V (HVB=0, HVN="VBoxVBoxVBox" but this can also be modified like default mode)
+6) KVM     (HVB=0, HVN="KVMKVMKVMKVM")
+
+This was also previously noted by user "TiTi87" in the virtualbox forums. The Hyper-V docs of virtualbox sadly could not help me either.
+
+UPDATE 2017-02-06: nsmfoo suggested upgrading to VirtualBox 5.1.4+ to get rid of the hypervisor detection. So I took his advice, moved up to VirtualBox version 5.1.14 (using this guide and this fix) and he was absolutely right:
+
