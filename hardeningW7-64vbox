@@ -25,6 +25,8 @@ It will create 2 shell scripts:
 1) <DmiSystemProduct>.sh <- Script to be used from outside the VM
 2) <DmiSystemProduct>.ps1 <- Script to be used from inside the VM post installation
 
+DISCLAIMER!! ACPI TABLES EXCEED 64K, GENERATE THE SCRIPTS IN AN OLD PC, AND TRANSFER THEN TO PATCH THE VM!!!!!!!!!!!!!
+
 Run Antivmdetection (outside VM): For me <DmiSystemProduct> resulted in "AllSeries" because I run an ASUS board.
 Okay, next step: execute <DmiSystemProduct>.sh - For me, this immediately resulted in a VM I could not start. Responsible for this were the 3 entries
 1) DmiBIOSVersion
